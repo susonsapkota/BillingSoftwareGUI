@@ -1,9 +1,17 @@
-from tkinter import *
 import tkinter.messagebox
+from tkinter import *
+from tkinter import ttk
+import datetime
+
+date_time = datetime.datetime.now()
+date_now = date_time.strftime("%Y - %m - %d")
+time_now = date_time.strftime("%H : %M : %S")
 
 
 def dummyFunction():
     print("This does nothing.")
+    print(date_now)
+    print(time_now)
 
 
 def confirmExit():
@@ -11,6 +19,10 @@ def confirmExit():
     if tkinter.messagebox.askyesno("Exit", "Do you want to exit this application?\n"
                                            "Unsaved files may get deleted."):
         root.destroy()
+
+
+def askName():
+    pass
 
 
 root = Tk()
@@ -45,17 +57,29 @@ editMenu.add_separator()
 
 toolBar = Frame(root, bg="grey")
 # to show on screen
-insertButton = Button(toolBar, text="Insert....", command=dummyFunction)
+insertButton = ttk.Button(toolBar, text="Insert....", command=dummyFunction)
 insertButton.pack(side=LEFT, padx=2, pady=2)
-printButton = Button(toolBar, text="Print....", command=dummyFunction)
+printButton = ttk.Button(toolBar, text="Print....", command=dummyFunction)
 printButton.pack(side=RIGHT, padx=2, pady=2)
 
 # shows on frame
 toolBar.pack(side=TOP, fill=X)
 
+# Name and address  of company
+companyName = Label(root, text="Generic Super Market", font="-weight bold")
+companyName.pack(side=TOP)
+companyAddress = Label(root, text="Generic Chowk, Kathmandu")
+companyAddress.pack(side=TOP)
+
+# Date and time
+dateTimeFrame = Frame(root)
+NowDate = Label(dateTimeFrame, text="Date: " + date_now)
+NowDate.pack(side=LEFT, pady=2)
+NowTime = Label(dateTimeFrame, text="Time: " + time_now)
+NowTime.pack(side=RIGHT, pady=2)
+dateTimeFrame.pack(side=TOP, fill=X)
+
 # status bar
-
-
 # where to add->root
 statusBar = Label(root, text="Static text that is going to change",
                   bd=1, relief=SUNKEN, anchor=W)
@@ -66,7 +90,7 @@ root.iconbitmap('icon.ico')
 
 # title and size of window
 root.title("Billing Software - Sapkota Suson")
-root.geometry("500x400")
+root.geometry("750x450")
 
 # this loops the program
 root.mainloop()

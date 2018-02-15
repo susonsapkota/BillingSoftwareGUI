@@ -1,4 +1,3 @@
-import user_input
 
 cleaned_data = []
 
