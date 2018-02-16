@@ -127,6 +127,8 @@ class BillingSoftware:
                             bd=1, width=10, font=(None, 10))
         self.SNBar1.pack(side=LEFT, padx=10, pady=5, anchor=NW)
 
+        
+
         self.productBar1 = Label(self.topFrameUser, text="Product Name",
                                  bd=1, width=23, font=(None, 10))
         self.productBar1.pack(side=LEFT, padx=10, pady=5, anchor=NW)

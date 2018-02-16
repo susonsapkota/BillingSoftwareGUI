@@ -7,12 +7,13 @@ def clean_data():
     lines = file.read().splitlines()
 
     for line in lines:
-        products.append(line.rstrip().split(","))
+        if line != "":  # cleaning and filtering
+            products.append(line.rstrip().split(","))
+            print(line.rstrip().split(","))
     file.flush()
     file.close()
 
 
-# TODO fix this csv maker
 def update_inventory():
     f = open("fileU.txt", "w")
     for i in range(len(products)):
@@ -23,6 +24,7 @@ def update_inventory():
                 f.write(products[i][j])
         f.write("\n")
     f.close()
+
 
 clean_data()
 update_inventory()
