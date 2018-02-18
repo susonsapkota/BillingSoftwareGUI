@@ -5,16 +5,23 @@ from tkinter import *
 from tkinter import ttk
 
 from BillingSoftwareGUI.GUI import userAdd
-from BillingSoftwareGUI.GUI.Discount import DiscountClass
+from BillingSoftwareGUI.GUI.Discount import *
+from BillingSoftwareGUI.GUI.dataReadWrite import *
+from BillingSoftwareGUI.GUI.Num2Words import *
 
 date_time = datetime.datetime.now()
 date_now = date_time.strftime("%Y - %m - %d")
 time_now = date_time.strftime("%H : %M : %S")
 
+cart = []
+counter = 1
+totalPrice = 0
+
 
 class BillingSoftware:
     def __init__(self, master):
 
+        self.totalPrice = 0
         # for window scaling and full screen
 
         # master.overrideredirect(True)
@@ -42,7 +49,7 @@ class BillingSoftware:
                                         font=("Times New Roman", 15, "bold"))
         self.companyName.pack(side=TOP, padx=2, pady=2)
         self.companyAddress.pack(side=TOP, padx=2, pady=2)
-
+        master.option_add('*tearOff', False)
         menu = Menu(master)
         master.config(menu=menu)
 
@@ -86,26 +93,31 @@ class BillingSoftware:
         self.topFrame.pack(side=TOP, fill=X)
 
         self.ProductLabel = ttk.Label(self.topFrame, text="Inventory - Items available will appear here")
-        self.ProductLabel.pack()
+        self.ProductLabel.pack(anchor=W)
 
-        # Labels inside of topFrame
+        self.productTreeView = ttk.Treeview(self.productFrame, height=30, selectmode="extended")
+        self.productTreeView.pack(side=LEFT, anchor=NW)
 
-        self.SNBar = Label(self.topFrame, text="S.N",
-                           bd=1, width=10, font=(None, 10))
-        self.SNBar.pack(side=LEFT, padx=25, pady=5, anchor=NW)
+        self.productTreeView["columns"] = ("1", "2", "3")
 
-        self.productBar = Label(self.topFrame, text="Product Name",
-                                bd=1, width=15, font=(None, 10))
-        self.productBar.pack(side=LEFT, padx=30, pady=5, anchor=NW)
+        self.productTreeView.column("#0", width=50, anchor=W)
+        self.productTreeView.column("1", width=250, anchor=W)
+        self.productTreeView.column("2", width=200, anchor=W)
+        self.productTreeView.column("3", width=200, anchor=W)
 
-        self.PriceBar = Label(self.topFrame, text="Price of Product",
-                              bd=1, width=15, font=(None, 10))
-        self.PriceBar.pack(side=LEFT, padx=30, pady=5, anchor=NW)
+        self.productTreeView.heading("#0", text="S.N")
+        self.productTreeView.heading("1", text="Name")
+        self.productTreeView.heading("2", text="Price")
+        self.productTreeView.heading("3", text="Quantity")
+        clean_data()
+        for i in range(len(products)):
+            self.productTreeView.insert("", "end", str(i), text=i)
 
-        self.QuantityBar = Label(self.topFrame, text="Quantity Available",
-                                 bd=1, width=15, font=(None, 10))
-        self.QuantityBar.pack(side=LEFT, padx=30, pady=5, anchor=NW)
+            self.productTreeView.set(str(i), "1", products[i][0])
+            self.productTreeView.set(str(i), "2", products[i][1])
+            self.productTreeView.set(str(i), "3", products[i][2])
 
+        self.productTreeView.bind("<Double-1>", self.addToCart)
         # for adding items that the user selects
 
         self.userFrame = Frame(master, height=400, bg="grey")
@@ -123,23 +135,18 @@ class BillingSoftware:
         self.UserLabel.pack()
 
         # catagories in users frame cart
-        self.SNBar1 = Label(self.topFrameUser, text="S.N",
-                            bd=1, width=10, font=(None, 10))
-        self.SNBar1.pack(side=LEFT, padx=10, pady=5, anchor=NW)
+        self.UserTreeView = ttk.Treeview(self.userFrame, height=30, selectmode="none")
+        self.UserTreeView.pack(side=LEFT, anchor=NW)
 
-        
+        self.UserTreeView["columns"] = ("1", "2")
 
-        self.productBar1 = Label(self.topFrameUser, text="Product Name",
-                                 bd=1, width=23, font=(None, 10))
-        self.productBar1.pack(side=LEFT, padx=10, pady=5, anchor=NW)
+        self.UserTreeView.column("#0", width=50, anchor=W)
+        self.UserTreeView.column("1", width=300, anchor=W)
+        self.UserTreeView.column("2", width=250, anchor=W)
 
-        self.PriceBar1 = Label(self.topFrameUser, text="Price",
-                               bd=1, width=15, font=(None, 10))
-        self.PriceBar1.pack(side=LEFT, padx=10, pady=5, anchor=NW)
-
-        self.totalBar = Label(self.topFrameUser, text="Total",
-                              bd=1, width=15, font=(None, 10))
-        self.totalBar.pack(side=LEFT, padx=10, pady=5, anchor=NW)
+        self.UserTreeView.heading("#0", text="S.N")
+        self.UserTreeView.heading("1", text="Name")
+        self.UserTreeView.heading("2", text="Price")
 
         # Labels inside of frame for top frame
 
@@ -148,8 +155,48 @@ class BillingSoftware:
         self.totalFrame.pack(side=TOP, padx=20, pady=20, fill=BOTH)
         self.totalFrame.pack_propagate(False)
 
+        self.priceFrame = Frame(self.totalFrame, height=140, bg="red")
+        self.priceFrame.pack(side=TOP, fill=BOTH)
+        self.priceFrame.pack_propagate(False)
+
+        self.priceLabelTotal = Label(self.priceFrame, text="Total : Rs.",
+                                     font=("Helvetica", 17))
+        self.priceLabelTotal.pack()
+
+        self.priceLabelNum = Label(self.priceFrame, text=0,
+                                   font=("Helvetica", 15))
+        self.priceLabelNum.pack()
+        self.priceLabelWords = Label(self.priceFrame, text="",
+                                     font=("Helvetica", 15))
+        self.priceLabelWords.pack()
+
+        self.priceLabelDis = Label(self.priceFrame, text="",
+                                   font=("Helvetica", 15))
+        self.priceLabelDis.pack()
+
+        self.bottomFrame = Frame(self.totalFrame, bg="grey")
+        self.bottomFrame.pack(side=BOTTOM, fill=X)
+
+        self.applyDisocunt = ttk.Button(self.bottomFrame, text="Apply discount",
+                                        command=self.askDiscount, width=15)
+
+        self.applyDisocunt.pack(side=LEFT, anchor=W)
+
+        self.printInvoice = ttk.Button(self.bottomFrame, text="Checkout / PRINT Invoice",
+                                       command=self.doNothing, width=30)
+
+        self.printInvoice.pack(side=RIGHT, anchor=E)
+
     def doNothing(self):
         print("did nothing")
+
+    def updateTreeView(self):
+        for i in range(len(products)):
+            self.productTreeView.insert("", "end", str(i), text=i)
+
+            self.productTreeView.set(str(i), "1", products[i][0])
+            self.productTreeView.set(str(i), "2", products[i][1])
+            self.productTreeView.set(str(i), "3", products[i][2])
 
     def AddNewUsers(self):
         rootSecond = Tk()
@@ -161,12 +208,50 @@ class BillingSoftware:
                                                "Unsaved files may get deleted."):
             master.destroy()
 
-
-
     def askDiscount(self):
         rootThird = Tk()
         app = DiscountClass(rootThird)
         rootThird.mainloop()
+
+        # self.priceLabelDis['text'] = self.returnFormatedDiscount
+
+    def addToCart(self, event):
+        global counter
+        item = int(self.productTreeView.identify('item', event.x, event.y))
+        if int(products[item][2]) - 1 >= 0:
+            cart.append(products[item])
+            self.UserTreeView.insert("", "end", str(counter), text=counter)
+            self.UserTreeView.set(str(counter), "1", products[item][0])
+            self.UserTreeView.set(str(counter), "2", products[item][1])
+            self.calculateTotal(int(products[item][1]))
+
+            self.priceLabelNum.config(text=totalPrice)
+            # TODO implement discount
+
+            self.priceLabelWords.config(text=num_to_word(totalPrice))
+            # print(totalPrice)
+            # print("discountamt",self.returnFormatedDiscount())
+            counter += 1
+
+            # decreasing the inventory after user adds to cart.
+
+            products[int(item)][2] = int(products[item][2]) - 1
+
+
+
+        else:
+            print("not enough item")
+
+            # TODO implement pop-up
+
+    def calculateTotal(self, num, ):
+        global totalPrice
+        totalPrice += num
+
+    def returnFormatedDiscount(self):
+        amt = DiscountClass.returnDiscountAmt(totalPrice)
+
+        return amt
 
 
 def main():

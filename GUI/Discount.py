@@ -2,9 +2,10 @@ from functools import partial
 from  tkinter import *
 from tkinter import ttk
 
+
 discPercent = 0
-
-
+updatedPrice = 0
+discAmt = 0
 class DiscountClass:
     def __init__(self, master):
         master.geometry("305x165")
@@ -38,12 +39,20 @@ class DiscountClass:
     def doNothing(self):
         print("clickedfgsd")
 
+    def returnDiscountAmt(self, totalprice):
+        amt = (int(discPercent) / 100) - int(totalprice)
+        return amt
+
+
+
     def updateDiscount(self, master):
+        global discAmt
+        global discPercent
+        global updatedPrice
         try:
             if int(self.descAmt.get()) >= 0:
-                discPercent = self.descAmt.get()
+                discPercent = int(self.descAmt.get())
                 master.destroy()
 
         except ValueError:
             self.infoText.pack(side=BOTTOM, fill=X, padx=3, pady=3)
-
